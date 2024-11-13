@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <base target="_top">
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+        padding: 20px;
+        text-align: center;
+      }
+      .container {
+        max-width: 400px;
+        margin: 0 auto;
+        padding: 20px;
+        border: 1px solid #ccc;
+        border-radius: 10px;
+        box-shadow: 0 0 10px rgba(0,0,0,0.1);
+      }
+      h2 {
+        font-size: 24px;
+        margin-bottom: 20px;
+      }
+      button {
+        padding: 10px 20px;
+        background-color: #4CAF50;
+        color: white;
+        border: none;
+        border-radius: 5px;
+        cursor: pointer;
+        font-size: 16px;
+        width: 100%;
+        margin: 10px 0;
+      }
+      button:hover {
+        background-color: #45a049;
+      }
+      .error {
+        color: red;
+        font-size: 14px;
+      }
+      .success {
+        color: green;
+        font-size: 14px;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <h2>Registro de Asistencia</h2>
+      <button id="entradaBtn" onclick="registrarEntrada()">Registrar Entrada</button>
+      <button id="salidaBtn" onclick="registrarSalida()">Registrar Salida</button>
+      <p class="error" id="error-message"></p>
+      <p class="success" id="success-message"></p>
+    </div>
+
+    <script>
+      // Asumimos que el RUT está disponible después de hacer login
+      var rut = '12345678-9';  // Este valor debería ser obtenido al hacer login
+
+      // Comprobamos si ya se registró la entrada y salida para el día de hoy
+      function verificarEstadoBotones() {
+        const lastDate = localStorage.getItem('lastDate');
+        const today = new Date().toISOString().split('T')[0]; // Formato YYYY-MM-DD
+        
+        // Si el último día registrado es el día de hoy, deshabilitamos los botones
+        if (lastDate === today) {
+          document.getElementById('entradaBtn').disabled = true;
+          document.getElementById('salidaBtn').disabled = true;
+          document.getElementById('success-message').innerHTML = 'Ya registraste tu asistencia hoy.';
+        } else {
+          // Si no es el mismo día, habilitamos los botones
+          document.getElementById('entradaBtn').disabled = false;
+          document.getElementById('salidaBtn').disabled = false;
+          document.getElementById('success-message').innerHTML = '';
+        }
+      }
+
+      // Llamar a la función de verificación de estado de los botones al cargar la página
+      window.onload = function() {
+        verificarEstadoBotones();
+      };
+
+      function registrarEntrada() {
+        verificarCoordenadas(rut, 'entrada');
+      }
+
+      function registrarSalida() {
+        verificarCoordenadas(rut, 'salida');
+      }
+
+      function verificarCoordenadas(rut, accion) {
+        var errorMessage = document.getElementById('error-message');
+        var successMessage = document.getElementById('success-message');
+        
+        // Limpiar los mensajes previos
+        errorMessage.innerHTML = '';
+        successMessage.innerHTML = '';
+
+        if (navigator.geolocation) {
+          navigator.geolocation.getCurrentPosition(function(position) {
+            var latPersona = position.coords.latitude;
+            var lonPersona = position.coords.longitude;
+
+            // Llamar a Google Apps Script para verificar y registrar la asistencia
+            google.script.run.withSuccessHandler(function(result) {
+              if (result.success) {
+                successMessage.innerHTML = result.message;
+                // Deshabilitar los botones después de registrar entrada o salida
+                document.getElementById('entradaBtn').disabled = true;
+                document.getElementById('salidaBtn').disabled = true;
+                // Guardar la fecha actual en el localStorage
+                localStorage.setItem('lastDate', new Date().toISOString().split('T')[0]);
+              } else {
+                errorMessage.innerHTML = result.message;
+              }
+            }).verificarYRegistrarAsistencia(latPersona, lonPersona, accion, rut);
+          }, function() {
+            errorMessage.innerHTML = "Error al obtener la ubicación. Asegúrate de habilitar la geolocalización.";
+          });
+        } else {
+          errorMessage.innerHTML = "Geolocalización no soportada por este navegador.";
+        }
+      }
+    </script>
+  </body>
+</html>
