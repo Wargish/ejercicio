@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <base target="_top">
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+        padding: 20px;
+        text-align: center;
+      }
+      .container {
+        max-width: 400px;
+        margin: 0 auto;
+        padding: 20px;
+        border: 1px solid #ccc;
+        border-radius: 10px;
+        box-shadow: 0 0 10px rgba(0,0,0,0.1);
+      }
+      h2 {
+        font-size: 24px;
+        margin-bottom: 20px;
+      }
+      input[type="email"], input[type="password"] {
+        width: 100%;
+        padding: 10px;
+        margin: 10px 0;
+        border-radius: 5px;
+        border: 1px solid #ddd;
+      }
+      button {
+        padding: 10px 20px;
+        background-color: #4CAF50;
+        color: white;
+        border: none;
+        border-radius: 5px;
+        cursor: pointer;
+        font-size: 16px;
+        width: 100%;
+      }
+      button:hover {
+        background-color: #45a049;
+      }
+      .error {
+        color: red;
+        font-size: 14px;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <h2>Iniciar sesión</h2>
+      <form id="loginForm">
+        <input type="email" id="email" placeholder="Email" required><br>
+        <input type="password" id="password" placeholder="Contraseña" required><br>
+        <button type="button" onclick="validarLogin()">Iniciar sesión</button>
+      </form>
+      <p class="error" id="error-message"></p>
+    </div>
+
+    <script>
+      function validarLogin() {
+        var email = document.getElementById('email').value;
+        var password = document.getElementById('password').value;
+        var errorMessage = document.getElementById('error-message');
+        
+        // Limpiar mensaje de error
+        errorMessage.innerHTML = '';
+
+        // Verificar que los campos no estén vacíos
+        if (email === '' || password === '') {
+          errorMessage.innerHTML = 'Por favor ingrese el email y la contraseña.';
+          return;
+        }
+        
+        // Llamar a Google Apps Script para validar las credenciales
+        google.script.run.withSuccessHandler(function(result) {
+          if (result === 'success') {
+            window.location.href = 'home.html'; // Redirigir a la página principal
+          } else {
+            errorMessage.innerHTML = 'Credenciales incorrectas. Intente nuevamente.';
+          }
+        }).verificarCredenciales(email, password);
+      }
+    </script>
+  </body>
+</html>
